@@ -24,10 +24,18 @@
       </span>
     </p>
 
+    <p class="batch-note">
+      整改事项由工程验收批量会签按原批次下发：同一批次整体接收，任一条失败整批回退；同一报告重复会签只保留最新一版。
+    </p>
+
     <form class="filter-bar" @submit.prevent="reload">
       <label v-for="field in filterFields" :key="field" class="filter-item">
         <span>{{ field }}</span>
         <input v-model="filters[field]" :placeholder="`按${field}检索`" />
+      </label>
+      <label class="filter-item">
+        <span>会签批次</span>
+        <input v-model="filters['会签批次']" placeholder="按会签批次检索" />
       </label>
       <button class="btn" type="submit">查询</button>
       <button class="btn ghost" type="button" @click="resetFilters">重置条件</button>
@@ -38,6 +46,7 @@
         <tr>
           <th v-for="column in columns" :key="column">{{ column }}</th>
           <th>当前状态</th>
+          <th>会签批次</th>
           <th>可执行动作</th>
         </tr>
       </thead>
@@ -45,6 +54,7 @@
         <tr v-for="row in rows" :key="String(row.id)">
           <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
           <td>{{ row.status }}</td>
+          <td>{{ row['会签批次'] ?? '—' }}</td>
           <td class="row-actions">
             <button
               v-for="action in actions"
@@ -58,7 +68,7 @@
           </td>
         </tr>
         <tr v-if="!rows.length">
-          <td :colspan="columns.length + 2" class="empty-state">暂无整改跟踪数据，可先登记整改任务</td>
+          <td :colspan="columns.length + 3" class="empty-state">暂无整改跟踪数据，可先登记整改任务</td>
         </tr>
       </tbody>
     </table>

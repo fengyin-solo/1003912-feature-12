@@ -35,3 +35,31 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .error-text { color: #b42318; }
 .status-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
 .legend-item { background: #eef2f7; border-radius: 999px; padding: 2px 10px; }
+
+/* 批量会签台 */
+.cosign-panel { margin-top: 20px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+.cosign-head h3 { margin: 0 0 4px; }
+.cosign-message { font-size: 13px; color: #027a48; }
+.cosign-message.error { color: #b42318; }
+.batch-card { border: 1px solid var(--border); border-radius: 8px; margin-top: 12px; padding: 10px 12px; background: #fbfcfe; }
+.batch-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.batch-status { border-radius: 999px; padding: 2px 10px; font-size: 12px; background: #eef2f7; }
+.batch-status[data-status='待会签'] { background: #fff4e5; color: #b54708; }
+.batch-status[data-status='待结论'] { background: #e0eaff; color: #1f6feb; }
+.batch-status[data-status='已结论'] { background: #e7f6ec; color: #027a48; }
+.step-flow { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; font-size: 12px; color: var(--muted); }
+.step-flow li.active { color: var(--brand); font-weight: 600; }
+.step-flow li.done { color: #027a48; }
+.batch-time { margin-left: auto; font-size: 12px; color: var(--muted); }
+.suggest-tag { display: inline-block; border-radius: 4px; padding: 1px 8px; font-size: 12px; }
+.suggest-tag[data-v='通过'] { background: #e7f6ec; color: #027a48; }
+.suggest-tag[data-v='需整改'] { background: #fff4e5; color: #b54708; }
+.suggest-tag[data-v='不通过'] { background: #fee4e2; color: #b42318; }
+.cell-note { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.cosign-input { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 13px; }
+.cosign-input.conflict { border-color: #b42318; background: #fff7f6; }
+.conflict-note { color: #b42318; font-size: 12px; }
+.batch-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.check-col { width: 32px; text-align: center; }
+.notice-text { color: #027a48; }
+.batch-note { font-size: 12px; color: var(--muted); margin: 0 0 10px; }

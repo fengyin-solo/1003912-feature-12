@@ -6,7 +6,10 @@
         <p class="page-desc">维护验收报告，围绕验收编号、项目编号、验收类型、验收日期做登记、筛选与状态流转。</p>
       </div>
       <div class="page-actions">
-        <button class="btn primary" type="button" @click="openCreate">登记验收报告</button>
+        <button class="btn primary" type="button" @click="createCosignBatch">
+          生成会签建议（{{ selectedIds.length }}）
+        </button>
+        <button class="btn" type="button" @click="openCreate">登记验收报告</button>
         <button class="btn" type="button" @click="exportRows">导出工程验收清单</button>
       </div>
     </header>
@@ -36,6 +39,9 @@
     <table class="data-table">
       <thead>
         <tr>
+          <th class="check-col">
+            <input type="checkbox" :checked="allEligibleSelected" @change="toggleAll" />
+          </th>
           <th v-for="column in columns" :key="column">{{ column }}</th>
           <th>当前状态</th>
           <th>可执行动作</th>
@@ -43,6 +49,15 @@
       </thead>
       <tbody>
         <tr v-for="row in rows" :key="String(row.id)">
+          <td class="check-col">
+            <input
+              v-model="selectedIds"
+              type="checkbox"
+              :value="Number(row.id)"
+              :disabled="isLocked(row)"
+              :title="isLocked(row) ? '已在未结会签批次中' : ''"
+            />
+          </td>
           <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
           <td>{{ row.status }}</td>
           <td class="row-actions">
@@ -58,21 +73,25 @@
           </td>
         </tr>
         <tr v-if="!rows.length">
-          <td :colspan="columns.length + 2" class="empty-state">暂无工程验收数据，可先登记验收报告</td>
+          <td :colspan="columns.length + 3" class="empty-state">暂无工程验收数据，可先登记验收报告</td>
         </tr>
       </tbody>
     </table>
 
     <footer class="page-foot">
       <span>共 {{ total }} 条工程验收记录</span>
+      <span v-if="noticeMessage" class="notice-text">{{ noticeMessage }}</span>
       <span v-if="errorMessage" class="error-text">{{ errorMessage }}</span>
     </footer>
+
+    <CosignPanel ref="panelRef" @changed="onBatchChanged" />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
+import { createBatch, openBatchReportIds } from '@/api/countersign-service'
 import {
   downloadEntries,
   listEntries,
@@ -80,6 +99,8 @@ import {
   runAction as applyAction,
 } from '@/api/local-service'
 import type { EntryRow } from '@/data/types'
+
+import CosignPanel from './CosignPanel.vue'
 
 const meta = moduleMeta('acceptance')
 const columns = ["验收编号", "项目编号", "验收类型", "验收日期", "验收组成员", "验收结论", "整改意见", "验收状态"]
@@ -90,14 +111,59 @@ const stats = [{"label": "待验收项目", "value": 0}, {"label": "通过项目
 const rows = ref<EntryRow[]>([])
 const total = ref(0)
 const errorMessage = ref('')
+const noticeMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
+const selectedIds = ref<number[]>([])
+const openIds = ref<Set<number>>(new Set())
+const panelRef = ref<InstanceType<typeof CosignPanel> | null>(null)
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,
     count: rows.value.filter((row) => String(row.status) === status).length,
   })),
 )
+
+const allEligibleSelected = computed(() => {
+  const eligible = rows.value.filter((row) => !isLocked(row))
+  return eligible.length > 0 && eligible.every((row) => selectedIds.value.includes(Number(row.id)))
+})
+
+function isLocked(row: EntryRow): boolean {
+  return openIds.value.has(Number(row.id))
+}
+
+function toggleAll() {
+  const eligible = rows.value.filter((row) => !isLocked(row)).map((row) => Number(row.id))
+  if (allEligibleSelected.value) {
+    selectedIds.value = selectedIds.value.filter((id) => !eligible.includes(id))
+  } else {
+    selectedIds.value = [...new Set([...selectedIds.value, ...eligible])]
+  }
+}
+
+function refreshOpenIds() {
+  openIds.value = openBatchReportIds()
+}
+
+function createCosignBatch() {
+  errorMessage.value = ''
+  noticeMessage.value = ''
+  const result = createBatch(selectedIds.value)
+  if (!result.ok) {
+    errorMessage.value = result.message
+    return
+  }
+  noticeMessage.value = result.message
+  selectedIds.value = []
+  refreshOpenIds()
+  panelRef.value?.refresh()
+}
+
+function onBatchChanged() {
+  refreshOpenIds()
+  reload()
+}
 
 function resetFilters() {
   filters.value = {}
@@ -114,6 +180,7 @@ function openCreate() {
 
 function runAction(action: string, row: EntryRow) {
   errorMessage.value = ''
+  noticeMessage.value = ''
   const result = applyAction(meta.key, Number(row.id), action)
   if (!result.ok) {
     errorMessage.value = result.message
@@ -133,5 +200,8 @@ function reload() {
   }
 }
 
-onMounted(reload)
+onMounted(() => {
+  reload()
+  refreshOpenIds()
+})
 </script>
