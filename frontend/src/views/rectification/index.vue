@@ -3,7 +3,7 @@
     <header class="page-head">
       <div>
         <h2>整改跟踪管理</h2>
-        <p class="page-desc">维护整改任务，围绕任务编号、验收编号、整改内容、责任单位做登记、筛选与状态流转。</p>
+        <p class="page-desc">会签批次形成结论后，整改事项按原批次整批进入本页（见「来源批次」），支持按批次号筛选跟踪。</p>
       </div>
       <div class="page-actions">
         <button class="btn primary" type="button" @click="openCreate">登记整改任务</button>
@@ -82,7 +82,7 @@ import {
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('rectification')
-const columns = ["任务编号", "验收编号", "整改内容", "责任单位", "整改期限", "整改措施", "复核人", "整改状态"]
+const columns = ["任务编号", "验收编号", "整改内容", "责任单位", "整改期限", "整改措施", "复核人", "来源批次", "整改状态"]
 const actions = ["开始整改", "提交复核", "确认复核"]
 const statuses = ["待整改", "整改中", "已整改", "已复核", "逾期未改"]
 const stats = [{"label": "待整改数", "value": 0}, {"label": "整改中数", "value": 0}, {"label": "逾期未改数", "value": 0}]
@@ -91,7 +91,7 @@ const rows = ref<EntryRow[]>([])
 const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
-const filterFields = columns.slice(0, 3)
+const filterFields = ["任务编号", "验收编号", "来源批次"]
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,
